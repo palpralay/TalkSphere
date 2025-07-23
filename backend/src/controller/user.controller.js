@@ -1,5 +1,6 @@
-import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
+import User from "../models/User.js";
+
 
 // Get Recommended Users
 export const getRecommendedUsers = async (req, res) => {
@@ -170,4 +171,25 @@ export async function getFriendRequests(req, res) {
   }
 }
 
-//
+// Get Outgoing Friend Requests
+export async function getOutgoingRequests(req, res) {
+  try {
+    const outgoingRequests = await FriendRequest.find({
+      sender: req.user.id,
+      status: "pending",
+    }).populate(
+      "receiver",
+      "fullname profilePicture nativeLanguage learningLanguage"
+    );
+
+    res.status(200).json({
+      success: true,
+      outgoingRequests,
+    });
+  } catch (error) {
+    console.error("Error fetching outgoing friend requests:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+

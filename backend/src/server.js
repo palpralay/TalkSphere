@@ -7,6 +7,7 @@ import { connectDB } from './lib/db.js';
 import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/user.route.js';
 import friendRoutes from './routes/friend.routes.js';
+import chatRoutes from './routes/chat.route.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/friends', friendRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Connect DB first, then start server
 connectDB().then(() => {
