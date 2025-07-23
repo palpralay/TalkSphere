@@ -1,11 +1,10 @@
 import FriendRequest from "../models/FriendRequest.js";
 import User from "../models/User.js";
 
-
-// Get Recommended Users
+// FIXED: Changed all req.user.id to req.user._id
 export const getRecommendedUsers = async (req, res) => {
   try {
-    const currentUserID = req.user.id;
+    const currentUserID = req.user._id;
 
     // Get friends & pending requests
     const currentUser = await User.findById(currentUserID).select("friends");
@@ -37,10 +36,9 @@ export const getRecommendedUsers = async (req, res) => {
   }
 };
 
-// Get My Friends
 export const getMyFriends = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user._id)
       .select("friends")
       .populate(
         "friends",
@@ -54,13 +52,13 @@ export const getMyFriends = async (req, res) => {
   }
 };
 
-// Send Friend Request
 export const sendFriendRequest = async (req, res) => {
   try {
-    const myID = req.user.id;
+    const myID = req.user._id;
     const { id: receiver } = req.params;
 
-    if (myID === receiver) {
+    // FIXED: Added toString() for proper comparison
+    if (myID.toString() === receiver) {
       return res
         .status(400)
         .json({
@@ -108,13 +106,14 @@ export const sendFriendRequest = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-// Accept Friend Request
+
 export const acceptFriendRequest = async (req, res) => {
   try {
     const { id: requestID } = req.params;
     const friendRequest = await FriendRequest.findById(requestID);
 
-    if (!friendRequest || friendRequest.receiver.toString() !== req.user.id) {
+    // FIXED: Added toString() for proper comparison
+    if (!friendRequest || friendRequest.receiver.toString() !== req.user._id.toString()) {
       return res
         .status(404)
         .json({ success: false, message: "Friend request not found." });
@@ -140,12 +139,34 @@ export const acceptFriendRequest = async (req, res) => {
   }
 };
 
+// ADDED: Missing rejectFriendRequest function
+export const rejectFriendRequest = async (req, res) => {
+  try {
+    const { id: requestID } = req.params;
+    const friendRequest = await FriendRequest.findById(requestID);
 
-// Get Friend Requests
+    if (!friendRequest || friendRequest.receiver.toString() !== req.user._id.toString()) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Friend request not found." });
+    }
+
+    friendRequest.status = "rejected";
+    await friendRequest.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Friend request rejected." });
+  } catch (error) {
+    console.error("Error rejecting friend request:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 export async function getFriendRequests(req, res) {
   try {
     const incomingRequests = await FriendRequest.find({
-      receiver: req.user.id,
+      receiver: req.user._id,
       status: "pending",
     }).populate(
       "sender",
@@ -153,7 +174,7 @@ export async function getFriendRequests(req, res) {
     );
 
     const acceptedRequests = await FriendRequest.find({
-      sender: req.user.id,
+      sender: req.user._id,
       status: "pending",
     }).populate(
       "receiver",
@@ -171,11 +192,10 @@ export async function getFriendRequests(req, res) {
   }
 }
 
-// Get Outgoing Friend Requests
 export async function getOutgoingRequests(req, res) {
   try {
     const outgoingRequests = await FriendRequest.find({
-      sender: req.user.id,
+      sender: req.user._id,
       status: "pending",
     }).populate(
       "receiver",
@@ -191,5 +211,3 @@ export async function getOutgoingRequests(req, res) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
-
-

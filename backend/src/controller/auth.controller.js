@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { upsertStreamUser, generateStreamToken } from "../lib/stream.js";
+
 export async function signup(req, res) {
   const { fullname, email, password } = req.body;
 
@@ -132,6 +133,7 @@ export async function logout(req, res) {
   }
 }
 
+// FIXED: Removed duplicate response
 export async function onboard(req, res) {
   try {
     const userId = req.user._id;
@@ -188,33 +190,14 @@ export async function onboard(req, res) {
       return res.status(500).json({ message: "Internal server error" });
     }
 
-    res.status(200).json({ success: true, user: updatedUser });
-
-    res.status(200).json({ message: "Onboarding successful" });
+    // FIXED: Only one response instead of two
+    res.status(200).json({ 
+      success: true, 
+      message: "Onboarding successful",
+      user: updatedUser 
+    });
   } catch (error) {
     console.error("Error during onboarding:", error);
     res.status(500).json({ message: "Internal server error" });
-  }
-}
-export async function protectRoute(req, res, next) {
-  const token = req.cookies.jwt;
-  try {
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized access" });
-    }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded) {
-      return res.status(401).json({ message: "Invalid token" });
-    }
-    const user = await User.findById(decoded.userId).select("-password");
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error("Error in protectRoute middleware:", error);
-    return res.status(500).json({ message: "Internal server error" });
   }
 }
