@@ -1,4 +1,6 @@
-import { axiosInstance } from "./axios";
+// Option 1: Change the import in api.js (RECOMMENDED)
+// frontend/src/lib/api.js
+import axiosInstance from "./axios";  // Default import instead of named import
 
 export const signup = async (signupData) => {
   const response = await axiosInstance.post("/auth/signup", signupData);
@@ -9,6 +11,7 @@ export const login = async (loginData) => {
   const response = await axiosInstance.post("/auth/login", loginData);
   return response.data;
 };
+
 export const logout = async () => {
   const response = await axiosInstance.post("/auth/logout");
   return response.data;

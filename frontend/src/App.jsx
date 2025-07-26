@@ -1,11 +1,11 @@
-import { Navigate, Route, Routes } from "react-router";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import HomePage from "./pages/HomePage.jsx";
 import SignUpPage from "./pages/SignUp.jsx";
 import LoginPage from "./pages/Loginpage.jsx";
 import NotificationsPage from "./pages/Notification.jsx";
-import CallPage from "./pages/CallPage.jsx";
-import ChatPage from "./pages/ChatPage.jsx";
+import CallPage from "./pages/Callpage.jsx";
+import ChatPage from "./pages/Chatpage.jsx";
 import OnboardingPage from "./pages/Onboarding.jsx";
 
 import { Toaster } from "react-hot-toast";

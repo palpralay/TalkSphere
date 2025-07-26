@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { MessageSquareHeart } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom"; // Fixed: changed from "react-router"
 import useSignUp from "../hooks/useSignUp.js";
+
 const SignUp = () => {
   const [signupData, setSignupData] = useState({
     name: "",
@@ -13,6 +14,16 @@ const SignUp = () => {
 
   const handleSignUp = (e) => {
     e.preventDefault();
+    
+    // Basic validation before submission
+    if (!signupData.name.trim() || !signupData.email.trim() || !signupData.password.trim()) {
+      return;
+    }
+    
+    if (signupData.password.length < 6) {
+      return;
+    }
+    
     signupMutation(signupData);
   };
 
@@ -36,12 +47,12 @@ const SignUp = () => {
             </span>
           </div>
 
-          {/* Error Message */}
+          {/* Error Message - Fixed error handling */}
           {error && (
             <div className="alert alert-error shadow-lg mb-4">
-                <p>{error.response.data.message}</p>
-              </div>
-            )}
+              <p>{error?.response?.data?.message || "An error occurred during signup"}</p>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSignUp} className="space-y-5">
@@ -67,6 +78,7 @@ const SignUp = () => {
                   setSignupData({ ...signupData, name: e.target.value })
                 }
                 required
+                minLength={2}
               />
             </div>
 
@@ -99,6 +111,7 @@ const SignUp = () => {
                   setSignupData({ ...signupData, password: e.target.value })
                 }
                 required
+                minLength={6}
               />
               <p className="text-sm text-gray-500 mt-1">
                 Must be at least 6 characters long.
@@ -107,26 +120,39 @@ const SignUp = () => {
 
             <div className="form-control w-full">
               <label className="label cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-primary"
-                  required
-                />
-                <span className="label-text  text-sm">
-                  I agree to the{" "}
-                  <a href="#" className="link link-primary">
-                    Terms & Conditions
-                  </a>{" "}
-                  and{" "}
-                  <a href="#" className="link link-primary">
-                    Privacy Policy
-                  </a>
-                </span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-primary"
+                    required
+                  />
+                  <span className="label-text text-sm">
+                    I agree to the{" "}
+                    <a href="#" className="link link-primary">
+                      Terms & Conditions
+                    </a>{" "}
+                    and{" "}
+                    <a href="#" className="link link-primary">
+                      Privacy Policy
+                    </a>
+                  </span>
+                </div>
               </label>
             </div>
 
-            <button className="btn btn-primary w-full rounded-xl shadow-md hover:scale-[1.02] transition-transform duration-200">
-                {isPending ? "Signing Up..." : "Create Account"}
+            <button 
+              type="submit"
+              className="btn btn-primary w-full rounded-xl shadow-md hover:scale-[1.02] transition-transform duration-200"
+              disabled={isPending}
+            >
+              {isPending ? (
+                <>
+                  <span className="loading loading-spinner loading-xs"></span>
+                  Signing Up...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </button>
 
             <p className="text-sm text-gray-500 text-center">
@@ -145,6 +171,9 @@ const SignUp = () => {
               src="/signup.svg"
               alt="Language connection illustration"
               className="w-full h-auto animate-fadeIn"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
             />
             <h2 className="text-xl font-semibold mt-6">
               Connect with language partners worldwide
