@@ -6,7 +6,7 @@ const friendRequestSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
-    receiver: {
+    recipient: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
@@ -16,15 +16,8 @@ const friendRequestSchema = new mongoose.Schema({
         enum: ["pending", "accepted", "rejected"],
         default: "pending",
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-
-}
-, {
+}, {
     timestamps: true,
-}
-);
+});
 
 export default mongoose.model("FriendRequest", friendRequestSchema); 

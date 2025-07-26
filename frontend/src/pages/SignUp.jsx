@@ -1,28 +1,19 @@
 import React, { useState } from "react";
 import { MessageSquareHeart } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
-import { signup } from "../lib/api";
+import { Link } from "react-router";
+import useSignUp from "../hooks/useSignUp.js";
 const SignUp = () => {
   const [signupData, setSignupData] = useState({
     name: "",
     email: "",
     password: "",
   });
-const queryClient = useQueryClient();
 
-  const {mutate:signupMutation, isPending, error} = useMutation({
-    mutationFn: signup,
-    onSuccess: ()=>{
-        queryClient.invalidateQueries({ queryKey: ["authUser"] });  
-    }
-  })
+  const { isPending, error, signupMutation } = useSignUp();
 
-  const handelSignUp = (e) => {
+  const handleSignUp = (e) => {
     e.preventDefault();
     signupMutation(signupData);
-    
   };
 
   return (
@@ -53,7 +44,7 @@ const queryClient = useQueryClient();
             )}
 
           {/* Form */}
-          <form onSubmit={handelSignUp} className="space-y-5">
+          <form onSubmit={handleSignUp} className="space-y-5">
             <div>
               <h2 className="text-2xl font-bold text-gray-200">
                 Create an account
