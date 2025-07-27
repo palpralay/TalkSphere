@@ -7,9 +7,12 @@ import { LoaderIcon, MapPinIcon, ShipWheelIcon, ShuffleIcon } from "lucide-react
 import { LANGUAGES } from "../constants";
 import { CameraIcon } from "lucide-react";
 import { useEffect } from "react";
+import { useNavigate } from "react-router";
+
 const OnboardingPage = () => {
   const { authUser } = useAuthUser();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [formState, setFormState] = useState({
     fullName: authUser?.fullName || "",
@@ -20,25 +23,55 @@ const OnboardingPage = () => {
     profilePic: authUser?.profilePic || "",
   });
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log("Onboarding form state initialized:", formState);
-  })
+  }, [formState]);
 
   const { mutate: onboardingMutation, isPending } = useMutation({
     mutationFn: completeOnboarding,
-    onSuccess: () => {
-      toast.success("Profile onboarded successfully");
+    onSuccess: (data) => {
+      console.log("Onboarding success response:", data);
+      toast.success("Profile completed successfully!");
+      
+      // Force refetch the auth user to get updated isOnboarded status
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      
+      // Wait a bit for the query to update, then navigate
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
     },
-
     onError: (error) => {
-      toast.error(error.response.data.message);
+      console.error("Onboarding error:", error);
+      toast.error(error?.response?.data?.message || "Failed to complete onboarding");
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Validation
+    if (!formState.fullName.trim()) {
+      toast.error("Please enter your full name");
+      return;
+    }
+
+    if (!formState.nativeLanguage) {
+      toast.error("Please select your native language");
+      return;
+    }
+
+    if (!formState.learningLanguage) {
+      toast.error("Please select the language you're learning");
+      return;
+    }
+
+    if (formState.nativeLanguage === formState.learningLanguage) {
+      toast.error("Native and learning languages cannot be the same");
+      return;
+    }
+
+    console.log("Submitting onboarding data:", formState);
     onboardingMutation(formState);
   };
 
@@ -86,7 +119,7 @@ const OnboardingPage = () => {
             {/* FULL NAME */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Full Name</span>
+                <span className="label-text">Full Name *</span>
               </label>
               <input
                 type="text"
@@ -95,6 +128,7 @@ const OnboardingPage = () => {
                 onChange={(e) => setFormState({ ...formState, fullName: e.target.value })}
                 className="input input-bordered w-full"
                 placeholder="Your full name"
+                required
               />
             </div>
 
@@ -117,13 +151,14 @@ const OnboardingPage = () => {
               {/* NATIVE LANGUAGE */}
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Native Language</span>
+                  <span className="label-text">Native Language *</span>
                 </label>
                 <select
                   name="nativeLanguage"
                   value={formState.nativeLanguage}
                   onChange={(e) => setFormState({ ...formState, nativeLanguage: e.target.value })}
                   className="select select-bordered w-full"
+                  required
                 >
                   <option value="">Select your native language</option>
                   {LANGUAGES.map((lang) => (
@@ -137,13 +172,14 @@ const OnboardingPage = () => {
               {/* LEARNING LANGUAGE */}
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Learning Language</span>
+                  <span className="label-text">Learning Language *</span>
                 </label>
                 <select
                   name="learningLanguage"
                   value={formState.learningLanguage}
                   onChange={(e) => setFormState({ ...formState, learningLanguage: e.target.value })}
                   className="select select-bordered w-full"
+                  required
                 >
                   <option value="">Select language you're learning</option>
                   {LANGUAGES.map((lang) => (
@@ -174,7 +210,6 @@ const OnboardingPage = () => {
             </div>
 
             {/* SUBMIT BUTTON */}
-
             <button className="btn btn-primary w-full" disabled={isPending} type="submit">
               {!isPending ? (
                 <>
@@ -184,7 +219,7 @@ const OnboardingPage = () => {
               ) : (
                 <>
                   <LoaderIcon className="animate-spin size-5 mr-2" />
-                  Onboarding...
+                  Completing...
                 </>
               )}
             </button>

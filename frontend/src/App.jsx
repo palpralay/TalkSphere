@@ -28,6 +28,16 @@ const App = () => {
     initTheme();
   }, [initTheme]);
 
+  // Add debug logging
+  useEffect(() => {
+    console.log("App state:", {
+      isLoading,
+      isAuthenticated,
+      isOnboarded,
+      authUser: authUser ? { ...authUser, isOnboarded: authUser.isOnboarded } : null
+    });
+  }, [isLoading, isAuthenticated, isOnboarded, authUser]);
+
   if (isLoading) return <PageLoader />;
 
   return (
@@ -36,72 +46,90 @@ const App = () => {
         <Route
           path="/"
           element={
-            isAuthenticated && isOnboarded ? (
+            !isAuthenticated ? (
+              <Navigate to="/login" replace />
+            ) : !isOnboarded ? (
+              <Navigate to="/onboarding" replace />
+            ) : (
               <Layout showSidebar={true}>
                 <HomePage />
               </Layout>
-            ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} replace />
             )
           }
         />
         <Route
           path="/signup"
           element={
-            !isAuthenticated ? <SignUpPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} replace />
+            !isAuthenticated ? (
+              <SignUpPage />
+            ) : !isOnboarded ? (
+              <Navigate to="/onboarding" replace />
+            ) : (
+              <Navigate to="/" replace />
+            )
           }
         />
         <Route
           path="/login"
           element={
-            !isAuthenticated ? <LoginPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} replace />
+            !isAuthenticated ? (
+              <LoginPage />
+            ) : !isOnboarded ? (
+              <Navigate to="/onboarding" replace />
+            ) : (
+              <Navigate to="/" replace />
+            )
           }
         />
         <Route
           path="/notifications"
           element={
-            isAuthenticated && isOnboarded ? (
+            !isAuthenticated ? (
+              <Navigate to="/login" replace />
+            ) : !isOnboarded ? (
+              <Navigate to="/onboarding" replace />
+            ) : (
               <Layout showSidebar={true}>
                 <NotificationsPage />
               </Layout>
-            ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} replace />
             )
           }
         />
         <Route
           path="/call/:id"
           element={
-            isAuthenticated && isOnboarded ? (
-              <CallPage />
+            !isAuthenticated ? (
+              <Navigate to="/login" replace />
+            ) : !isOnboarded ? (
+              <Navigate to="/onboarding" replace />
             ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} replace />
+              <CallPage />
             )
           }
         />
         <Route
           path="/chat/:id"
           element={
-            isAuthenticated && isOnboarded ? (
+            !isAuthenticated ? (
+              <Navigate to="/login" replace />
+            ) : !isOnboarded ? (
+              <Navigate to="/onboarding" replace />
+            ) : (
               <Layout showSidebar={false}>
                 <ChatPage />
               </Layout>
-            ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} replace />
             )
           }
         />
         <Route
           path="/onboarding"
           element={
-            isAuthenticated ? (
-              !isOnboarded ? (
-                <OnboardingPage />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            ) : (
+            !isAuthenticated ? (
               <Navigate to="/login" replace />
+            ) : isOnboarded ? (
+              <Navigate to="/" replace />
+            ) : (
+              <OnboardingPage />
             )
           }
         />

@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { upsertStreamUser, generateStreamToken } from "../lib/stream.js";
+import { logChatPromiseExecution } from "stream-chat";
 
 export async function signup(req, res) {
   const { fullName, email, password } = req.body;
@@ -84,7 +85,7 @@ export async function login(req, res) {
 
   try {
     console.log(email, password);
-    
+
     if (!email || !password) {
       return res
         .status(400)
@@ -93,13 +94,12 @@ export async function login(req, res) {
 
     const user = await User.findOne({ email });
 
-    
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const isPasswordCorrect = await user.matchPassword(password);
-  
+
     if (!isPasswordCorrect) {
       return res.status(401).json({ message: "Invalid password or email" });
     }
@@ -160,7 +160,6 @@ export async function onboard(req, res) {
       bio,
       profilePicture,
     } = req.body;
-
 
     if (
       !fullName ||

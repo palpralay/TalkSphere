@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { MessageSquareHeart } from "lucide-react";
-import { Link } from "react-router"; 
+import { Link } from "react-router";
 import useSignUp from "../hooks/useSignUp.js";
 import toast from "react-hot-toast";
+
 const SignUp = () => {
   const [signupData, setSignupData] = useState({
-    fullname: "",
+    fullName: "",
     email: "",
     password: "",
   });
@@ -15,23 +16,23 @@ const SignUp = () => {
 
   const handleSignUp = (e) => {
     e.preventDefault();
-    
+
     // Enhanced validation
-    if (!signupData.fullname.trim()) {
+    if (!signupData.fullName.trim()) {
       toast.error("Please enter your full name");
       return;
     }
-    
+
     if (!signupData.email.trim()) {
       toast.error("Please enter your email");
       return;
     }
-    
+
     if (!signupData.password.trim()) {
       toast.error("Please enter a password");
       return;
     }
-    
+
     if (signupData.password.length < 6) {
       toast.error("Password must be at least 6 characters long");
       return;
@@ -41,7 +42,7 @@ const SignUp = () => {
       toast.error("Please accept the terms and conditions");
       return;
     }
-    
+
     signupMutation(signupData);
   };
 
@@ -68,7 +69,10 @@ const SignUp = () => {
           {/* Error Message */}
           {error && (
             <div className="alert alert-error shadow-lg mb-4">
-              <p>{error?.response?.data?.message || "An error occurred during signup"}</p>
+              <p>
+                {error?.response?.data?.message ||
+                  "An error occurred during signup"}
+              </p>
             </div>
           )}
 
@@ -89,9 +93,9 @@ const SignUp = () => {
                 type="text"
                 placeholder="Enter your full name"
                 className="input input-bordered w-full focus:ring-2 focus:ring-primary transition-all duration-200"
-                value={signupData.fullname}
+                value={signupData.fullName}
                 onChange={(e) =>
-                  setSignupData({ ...signupData, fullname: e.target.value })
+                  setSignupData({ ...signupData, fullName: e.target.value })
                 }
                 required
                 minLength={2}
@@ -158,7 +162,7 @@ const SignUp = () => {
               </label>
             </div>
 
-            <button 
+            <button
               type="submit"
               className="btn btn-primary w-full rounded-xl shadow-md hover:scale-[1.02] transition-transform duration-200"
               disabled={isPending}
@@ -183,24 +187,23 @@ const SignUp = () => {
         </div>
 
         {/* Right Section - Illustration */}
-      <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-primary/5 to-secondary/5 items-center justify-center">
-  <div className="max-w-md p-5 text-center flex flex-col gap-6">
-    <img
-      src="/signup.svg"
-      alt="Signup illustration"
-      className="w-full h-auto drop-shadow-lg animate-float"
-    />
-    <div>
-      <h2 className="text-xl font-semibold">
-        Connect with language partners worldwide
-      </h2>
-      <p className="opacity-70">
-        Practice conversations, make friends, and improve your skills
-      </p>
-    </div>
-  </div>
-</div>
-
+        <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-primary/5 to-secondary/5 items-center justify-center">
+          <div className="max-w-md p-5 text-center flex flex-col gap-6">
+            <img
+              src="/signup.svg"
+              alt="Signup illustration"
+              className="w-full h-auto drop-shadow-lg animate-float"
+            />
+            <div>
+              <h2 className="text-xl font-semibold">
+                Connect with language partners worldwide
+              </h2>
+              <p className="opacity-70">
+                Practice conversations, make friends, and improve your skills
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
