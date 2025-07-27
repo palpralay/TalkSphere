@@ -1,26 +1,44 @@
 import React, { useState } from "react";
 import { MessageSquareHeart } from "lucide-react";
-import { Link } from "react-router-dom"; // Fixed: changed from "react-router"
+import { Link } from "react-router"; 
 import useSignUp from "../hooks/useSignUp.js";
-
+import toast from "react-hot-toast";
 const SignUp = () => {
   const [signupData, setSignupData] = useState({
-    name: "",
+    fullname: "",
     email: "",
     password: "",
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const { isPending, error, signupMutation } = useSignUp();
 
   const handleSignUp = (e) => {
     e.preventDefault();
     
-    // Basic validation before submission
-    if (!signupData.name.trim() || !signupData.email.trim() || !signupData.password.trim()) {
+    // Enhanced validation
+    if (!signupData.fullname.trim()) {
+      toast.error("Please enter your full name");
+      return;
+    }
+    
+    if (!signupData.email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
+    
+    if (!signupData.password.trim()) {
+      toast.error("Please enter a password");
       return;
     }
     
     if (signupData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast.error("Please accept the terms and conditions");
       return;
     }
     
@@ -42,12 +60,12 @@ const SignUp = () => {
           {/* Logo */}
           <div className="mb-6 flex items-center gap-2">
             <MessageSquareHeart className="size-9 text-primary animate-bounce" />
-            <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-text">
+            <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent">
               TalkSphere
             </span>
           </div>
 
-          {/* Error Message - Fixed error handling */}
+          {/* Error Message */}
           {error && (
             <div className="alert alert-error shadow-lg mb-4">
               <p>{error?.response?.data?.message || "An error occurred during signup"}</p>
@@ -57,11 +75,9 @@ const SignUp = () => {
           {/* Form */}
           <form onSubmit={handleSignUp} className="space-y-5">
             <div>
-              <h2 className="text-2xl font-bold text-gray-200">
-                Create an account
-              </h2>
-              <p className="text-sm text-gray-500">
-                Join Talksphere and start your language learning journey!
+              <h2 className="text-2xl font-bold">Create an account</h2>
+              <p className="text-sm opacity-70">
+                Join TalkSphere and start your language learning journey!
               </p>
             </div>
 
@@ -73,9 +89,9 @@ const SignUp = () => {
                 type="text"
                 placeholder="Enter your full name"
                 className="input input-bordered w-full focus:ring-2 focus:ring-primary transition-all duration-200"
-                value={signupData.name}
+                value={signupData.fullname}
                 onChange={(e) =>
-                  setSignupData({ ...signupData, name: e.target.value })
+                  setSignupData({ ...signupData, fullname: e.target.value })
                 }
                 required
                 minLength={2}
@@ -113,7 +129,7 @@ const SignUp = () => {
                 required
                 minLength={6}
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm opacity-70 mt-1">
                 Must be at least 6 characters long.
               </p>
             </div>
@@ -124,6 +140,8 @@ const SignUp = () => {
                   <input
                     type="checkbox"
                     className="checkbox checkbox-primary"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
                     required
                   />
                   <span className="label-text text-sm">
@@ -155,7 +173,7 @@ const SignUp = () => {
               )}
             </button>
 
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm opacity-70 text-center">
               Already have an account?{" "}
               <Link to="/login" className="link link-primary">
                 Log In
@@ -165,24 +183,24 @@ const SignUp = () => {
         </div>
 
         {/* Right Section - Illustration */}
-        <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-primary/5 to-secondary/5 items-center justify-center">
-          <div className="max-w-md p-8 text-center">
-            <img
-              src="/signup.svg"
-              alt="Language connection illustration"
-              className="w-full h-auto animate-fadeIn"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-            <h2 className="text-xl font-semibold mt-6">
-              Connect with language partners worldwide
-            </h2>
-            <p className="opacity-70">
-              Practice conversations, make friends, and improve your skills
-            </p>
-          </div>
-        </div>
+      <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-primary/5 to-secondary/5 items-center justify-center">
+  <div className="max-w-md p-5 text-center flex flex-col gap-6">
+    <img
+      src="/signup.svg"
+      alt="Signup illustration"
+      className="w-full h-auto drop-shadow-lg animate-float"
+    />
+    <div>
+      <h2 className="text-xl font-semibold">
+        Connect with language partners worldwide
+      </h2>
+      <p className="opacity-70">
+        Practice conversations, make friends, and improve your skills
+      </p>
+    </div>
+  </div>
+</div>
+
       </div>
     </div>
   );

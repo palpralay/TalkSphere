@@ -4,10 +4,10 @@ import bcrypt from "bcryptjs";
 import { upsertStreamUser, generateStreamToken } from "../lib/stream.js";
 
 export async function signup(req, res) {
-  const { fullname, email, password } = req.body;
+  const { fullName, email, password } = req.body;
 
   try {
-    if (!fullname || !email || !password) {
+    if (!fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -31,7 +31,7 @@ export async function signup(req, res) {
     const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
 
     const newUser = await User.create({
-      fullname,
+      fullName,
       email,
       password,
       profilePicture: randomAvatar,
@@ -40,7 +40,7 @@ export async function signup(req, res) {
     try {
       await upsertStreamUser({
         id: newUser._id.toString(),
-        fullname: newUser.fullname,
+        fullName: newUser.fullName,
         email: newUser.email,
         image: newUser.profilePicture || "",
       });
@@ -56,17 +56,19 @@ export async function signup(req, res) {
     });
 
     res.cookie("jwt", token, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false, // Set to false for development
+      sameSite: "lax", // Changed from "strict" to "lax" for development
+      path: "/", // Explicitly set path
     });
 
     res.status(201).json({
       message: "User created successfully",
+      token: token,
       user: {
         _id: newUser._id,
-        fullname: newUser.fullname,
+        fullName: newUser.fullName,
         email: newUser.email,
         profilePicture: newUser.profilePicture,
       },
@@ -81,6 +83,8 @@ export async function login(req, res) {
   const { email, password } = req.body;
 
   try {
+    console.log(email, password);
+    
     if (!email || !password) {
       return res
         .status(400)
@@ -88,31 +92,42 @@ export async function login(req, res) {
     }
 
     const user = await User.findOne({ email });
+
+    
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const isPasswordCorrect = await user.matchPassword(password);
+  
     if (!isPasswordCorrect) {
       return res.status(401).json({ message: "Invalid password or email" });
     }
+
+    console.log("User found:", user._id);
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
+    console.log("JWT token generated:", token);
+
     res.cookie("jwt", token, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false, // Set to false for development
+      sameSite: "lax", // Changed from "strict" to "lax" for development
+      path: "/", // Explicitly set path
     });
+
+    console.log("Cookie set successfully");
 
     res.status(200).json({
       message: "Login successful",
+      token: token, // Also return token for debugging
       user: {
         _id: user._id,
-        fullname: user.fullname,
+        fullName: user.fullName,
         email: user.email,
         profilePicture: user.profilePicture,
       },
@@ -138,7 +153,7 @@ export async function onboard(req, res) {
   try {
     const userId = req.user._id;
     const {
-      fullname,
+      fullName,
       learningLanguage,
       nativeLanguage,
       location,
@@ -146,8 +161,9 @@ export async function onboard(req, res) {
       profilePicture,
     } = req.body;
 
+
     if (
-      !fullname ||
+      !fullName ||
       !learningLanguage ||
       !nativeLanguage ||
       !location ||
@@ -156,7 +172,7 @@ export async function onboard(req, res) {
       return res.status(400).json({
         message: "All fields are required",
         missingFields: [
-          !fullname && "fullname",
+          !fullName && "fullName",
           !learningLanguage && "learningLanguage",
           !nativeLanguage && "nativeLanguage",
           !location && "location",
@@ -181,7 +197,7 @@ export async function onboard(req, res) {
     try {
       await upsertStreamUser({
         id: updatedUser._id.toString(),
-        fullname: updatedUser.fullname,  
+        fullName: updatedUser.fullName,
         email: updatedUser.email,
         image: updatedUser.profilePicture || "",
       });
@@ -191,10 +207,10 @@ export async function onboard(req, res) {
     }
 
     // FIXED: Only one response instead of two
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       message: "Onboarding successful",
-      user: updatedUser 
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Error during onboarding:", error);

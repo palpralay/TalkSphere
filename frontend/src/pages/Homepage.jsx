@@ -9,21 +9,23 @@ import {
 import { Link } from "react-router";
 import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-react";
 
-import { capitialize } from "../lib/utils";
+import { capitalize } from "../lib/utils"; // Fixed typo
 
-import FriendCard, { getLanguageFlag } from "../components/FriendCard";
+import FriendCard from "../components/FriendCard";
+import { getLanguageFlag } from "../lib/languageUtils";
 import NoFriendsFound from "../components/NoFriendsFound";
+import toast from "react-hot-toast";
 
 const HomePage = () => {
   const queryClient = useQueryClient();
   const [outgoingRequestsIds, setOutgoingRequestsIds] = useState(new Set());
 
-  const { data: friends = [], isLoading: loadingFriends } = useQuery({
+  const { data: friends = [], isLoading: loadingFriends, error: friendsError } = useQuery({
     queryKey: ["friends"],
     queryFn: getUserFriends,
   });
 
-  const { data: recommendedUsers = [], isLoading: loadingUsers } = useQuery({
+  const { data: recommendedUsers = [], isLoading: loadingUsers, error: usersError } = useQuery({
     queryKey: ["users"],
     queryFn: getRecommendedUsers,
   });
@@ -35,7 +37,13 @@ const HomePage = () => {
 
   const { mutate: sendRequestMutation, isPending } = useMutation({
     mutationFn: sendFriendRequest,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] });
+      toast.success("Friend request sent successfully!");
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Failed to send friend request");
+    },
   });
 
   useEffect(() => {
@@ -47,6 +55,19 @@ const HomePage = () => {
       setOutgoingRequestsIds(outgoingIds);
     }
   }, [outgoingFriendReqs]);
+
+  // Show error states
+  if (friendsError || usersError) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="container mx-auto">
+          <div className="alert alert-error">
+            <span>Failed to load data. Please refresh the page.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -109,7 +130,13 @@ const HomePage = () => {
                     <div className="card-body p-5 space-y-4">
                       <div className="flex items-center gap-3">
                         <div className="avatar size-16 rounded-full">
-                          <img src={user.profilePic} alt={user.fullName} />
+                          <img 
+                            src={user.profilePic} 
+                            alt={user.fullName}
+                            onError={(e) => {
+                              e.target.src = '/default-avatar.png';
+                            }}
+                          />
                         </div>
 
                         <div>
@@ -127,11 +154,11 @@ const HomePage = () => {
                       <div className="flex flex-wrap gap-1.5">
                         <span className="badge badge-secondary">
                           {getLanguageFlag(user.nativeLanguage)}
-                          Native: {capitialize(user.nativeLanguage)}
+                          Native: {capitalize(user.nativeLanguage)}
                         </span>
                         <span className="badge badge-outline">
                           {getLanguageFlag(user.learningLanguage)}
-                          Learning: {capitialize(user.learningLanguage)}
+                          Learning: {capitalize(user.learningLanguage)}
                         </span>
                       </div>
 

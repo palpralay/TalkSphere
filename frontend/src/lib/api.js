@@ -4,16 +4,32 @@ import axiosInstance from "./axios";  // Default import instead of named import
 
 export const signup = async (signupData) => {
   const response = await axiosInstance.post("/auth/signup", signupData);
+  
+  // Store the token in localStorage if it exists in the response
+  if (response.data.token) {
+    localStorage.setItem('jwt', response.data.token);
+  }
+  
   return response.data;
 };
 
 export const login = async (loginData) => {
   const response = await axiosInstance.post("/auth/login", loginData);
+  
+  // Store the token in localStorage if it exists in the response
+  if (response.data.token) {
+    localStorage.setItem('jwt', response.data.token);
+  }
+  
   return response.data;
 };
 
 export const logout = async () => {
   const response = await axiosInstance.post("/auth/logout");
+  
+  // Clear the token from localStorage
+  localStorage.removeItem('jwt');
+  
   return response.data;
 };
 

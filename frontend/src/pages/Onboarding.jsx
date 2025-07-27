@@ -6,6 +6,7 @@ import { completeOnboarding } from "../lib/api";
 import { LoaderIcon, MapPinIcon, ShipWheelIcon, ShuffleIcon } from "lucide-react";
 import { LANGUAGES } from "../constants";
 import { CameraIcon } from "lucide-react";
+import { useEffect } from "react";
 const OnboardingPage = () => {
   const { authUser } = useAuthUser();
   const queryClient = useQueryClient();
@@ -18,6 +19,10 @@ const OnboardingPage = () => {
     location: authUser?.location || "",
     profilePic: authUser?.profilePic || "",
   });
+
+  useEffect(()=>{
+    console.log("Onboarding form state initialized:", formState);
+  })
 
   const { mutate: onboardingMutation, isPending } = useMutation({
     mutationFn: completeOnboarding,
